@@ -91,10 +91,6 @@ header p {
 /* Chart specific styles */
 .bar {
     transition: fill 0.3s;
-}
-
-.bar:hover {
-    fill: #e74c3c !important;
     cursor: pointer;
 }
 
@@ -104,7 +100,7 @@ header p {
 
 .scatter-point:hover {
     r: 6;
-    stroke: #e74c3c;
+    stroke: #9b59b6;
     stroke-width: 2;
     cursor: pointer;
 }
@@ -121,7 +117,7 @@ header p {
 }
 
 .state-path:hover {
-    fill: #3498db !important;
+    fill: #9b59b6 !important;
     cursor: pointer;
 }
 
@@ -130,7 +126,7 @@ header p {
 }
 
 .bubble:hover {
-    stroke: #e74c3c;
+    stroke: #9b59b6;
     stroke-width: 3;
     cursor: pointer;
 }

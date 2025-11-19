@@ -69,6 +69,11 @@ function categorySalesChart(data) {
     // Sort by sales descending
     categorySales.sort((a, b) => b[1] - a[1]);
 
+    // FIXED COLOR MAPPING - consistent across all charts
+    const colorScale = d3.scaleOrdinal()
+        .domain(['Furniture', 'Office Supplies', 'Technology'])
+        .range(['#3498db', '#2ecc71', '#e74c3c']);
+
     // Scales
     const x = d3.scaleBand()
         .domain(categorySales.map(d => d[0]))
@@ -79,11 +84,6 @@ function categorySalesChart(data) {
         .domain([0, d3.max(categorySales, d => d[1])])
         .nice()
         .range([height - margin.bottom, margin.top]);
-
-    // Color scale
-    const colorScale = d3.scaleOrdinal()
-        .domain(categorySales.map(d => d[0]))
-        .range(['#3498db', '#2ecc71', '#e74c3c']);
 
     // Bars
     svg.selectAll(".bar")
@@ -97,11 +97,17 @@ function categorySalesChart(data) {
         .attr("height", d => y(0) - y(d[1]))
         .attr("fill", d => colorScale(d[0]))
         .on("mouseover", function(event, d) {
+            // Change to purple on hover instead of orange
+            d3.select(this).attr("fill", "#9b59b6");
             const content = `<strong>${d[0]}</strong><br/>
                            Sales: $${d[1].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             showTooltip(event, content);
         })
-        .on("mouseout", hideTooltip);
+        .on("mouseout", function(event, d) {
+            // Restore original color
+            d3.select(this).attr("fill", colorScale(d[0]));
+            hideTooltip();
+        });
 
     // X Axis
     svg.append("g")
