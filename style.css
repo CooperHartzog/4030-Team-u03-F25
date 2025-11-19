@@ -1,28 +1,178 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background: #f7f7f7;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
 }
 
 header {
     text-align: center;
     margin-bottom: 40px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 2.5em;
+}
+
+header p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 1.1em;
 }
 
 .dashboard {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 40px;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    grid-gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .chart {
     background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chart:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.chart h2 {
+    margin: 0 0 20px 0;
+    color: #34495e;
+    font-size: 1.5em;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 10px;
 }
 
 .chart svg {
     width: 100%;
-    height: 300px;
+    height: 400px;
+    display: block;
+}
+
+/* Tooltip styling */
+#tooltip {
+    position: absolute;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 14px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    z-index: 1000;
+    max-width: 250px;
+}
+
+#tooltip.visible {
+    opacity: 1;
+}
+
+#tooltip strong {
+    color: #3498db;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Chart specific styles */
+.bar {
+    transition: fill 0.3s;
+}
+
+.bar:hover {
+    fill: #e74c3c !important;
+    cursor: pointer;
+}
+
+.scatter-point {
+    transition: all 0.3s;
+}
+
+.scatter-point:hover {
+    r: 6;
+    stroke: #e74c3c;
+    stroke-width: 2;
+    cursor: pointer;
+}
+
+.line-path {
+    fill: none;
+    stroke-width: 3;
+}
+
+.state-path {
+    stroke: #fff;
+    stroke-width: 1;
+    transition: fill 0.3s;
+}
+
+.state-path:hover {
+    fill: #3498db !important;
+    cursor: pointer;
+}
+
+.bubble {
+    transition: all 0.3s;
+}
+
+.bubble:hover {
+    stroke: #e74c3c;
+    stroke-width: 3;
+    cursor: pointer;
+}
+
+/* Axis styling */
+.axis text {
+    font-size: 12px;
+    fill: #555;
+}
+
+.axis path,
+.axis line {
+    stroke: #ccc;
+}
+
+.axis-label {
+    font-size: 14px;
+    fill: #333;
+    font-weight: 600;
+}
+
+/* Responsive design */
+@media (max-width: 1100px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    header h1 {
+        font-size: 1.8em;
+    }
+    
+    .chart {
+        padding: 15px;
+    }
+    
+    .chart svg {
+        height: 300px;
+    }
 }
