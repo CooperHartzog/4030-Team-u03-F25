@@ -51,6 +51,9 @@ d3.csv("data/Superstore.csv").then(function(data) {
 function categorySalesChart(data) {
 
     const svg = d3.select("#category-sales svg");
+        width = 360,
+        height = 250,
+        margin = { top: 20, right: 20, bottom: 40, left: 60 };
     const container = d3.select("#category-sales");
     const containerWidth = container.node().getBoundingClientRect().width;
     const width = containerWidth - 50;
@@ -150,102 +153,100 @@ function categorySalesChart(data) {
 // =====================================
 function salesProfitScatter(data) {
 
-    const svg = d3.select("#sales-profit svg");
-    const container = d3.select("#sales-profit");
-    const containerWidth = container.node().getBoundingClientRect().width;
-    const width = containerWidth - 50;
-    const height = 400;
-    const margin = { top: 20, right: 20, bottom: 60, left: 80 };
+    const svg = d3.select("#sales-profit svg"),
+          width = 800,      // wider for more room
+          height = 350,
+          margin = { top: 30, right: 30, bottom: 60, left: 70 };
 
-    svg.attr("viewBox", `0 0 ${width} ${height}`);
+    svg.attr("width", width).attr("height", height);
 
-    // Sample data to reduce overplotting (take every 5th point)
-    const sampledData = data.filter((d, i) => i % 5 === 0);
+    // Compute a clipped max for Sales (95th percentile) to spread the points
+    const sortedSales = data
+        .map(d => d.Sales)
+        .sort(d3.ascending);
 
-    // Use SAMPLED data for scale so it matches what's displayed
+    const xMax = d3.quantile(sortedSales, 0.95);
+
     const x = d3.scaleLinear()
-        .domain([0, d3.max(sampledData, d => d.Sales)])
+        .domain([0, xMax])
         .nice()
         .range([margin.left, width - margin.right]);
 
+    // Profit can be negative; keep full extent but nice’d
     const y = d3.scaleLinear()
-        .domain(d3.extent(sampledData, d => d.Profit))
+        .domain(d3.extent(data, d => d.Profit))
         .nice()
         .range([height - margin.bottom, margin.top]);
 
-    // Color by category
-    const colorScale = d3.scaleOrdinal()
-        .domain(['Furniture', 'Office Supplies', 'Technology'])
-        .range(['#3498db', '#2ecc71', '#e74c3c']);
+    // Color by category for readability
+    const categories = Array.from(new Set(data.map(d => d.Category)));
+    const color = d3.scaleOrdinal()
+        .domain(categories)
+        .range(["#1f77b4", "#ff7f0e", "#2ca02c"]); // 3 categories in Superstore
+
+    // Filter to points within the clipped x domain
+    const filtered = data.filter(d => d.Sales <= xMax);
 
     // Points
-    svg.selectAll(".scatter-point")
-        .data(sampledData)
+    svg.selectAll("circle")
+        .data(filtered)
         .enter()
         .append("circle")
-        .attr("class", "scatter-point")
         .attr("cx", d => x(d.Sales))
         .attr("cy", d => y(d.Profit))
-        .attr("r", 4)
-        .attr("fill", d => colorScale(d.Category))
-        .attr("opacity", 0.6)
-        .on("mouseover", function(event, d) {
-            const content = `<strong>${d.Category}</strong><br/>
-                           Sales: $${d.Sales.toFixed(2)}<br/>
-                           Profit: $${d.Profit.toFixed(2)}<br/>
-                           Quantity: ${d.Quantity}`;
-            showTooltip(event, content);
-        })
-        .on("mouseout", hideTooltip);
+        .attr("r", 3)
+        .attr("fill", d => color(d.Category))
+        .attr("opacity", 0.6);
 
-    // X Axis
+    // Axes
+    const xAxis = d3.axisBottom(x);
+    const yAxis = d3.axisLeft(y);
+
     svg.append("g")
-        .attr("class", "axis")
         .attr("transform", `translate(0, ${height - margin.bottom})`)
-        .call(d3.axisBottom(x).tickFormat(d => "$" + d3.format(".2s")(d)));
+        .call(xAxis);
 
-    // Y Axis
     svg.append("g")
-        .attr("class", "axis")
         .attr("transform", `translate(${margin.left}, 0)`)
-        .call(d3.axisLeft(y).tickFormat(d => "$" + d3.format(".2s")(d)));
+        .call(yAxis);
 
-    // Axis Labels
+    // Axis labels
     svg.append("text")
-        .attr("class", "axis-label")
-        .attr("x", width / 2)
-        .attr("y", height - 5)
+        .attr("x", (width / 2))
+        .attr("y", height - 15)
         .attr("text-anchor", "middle")
-        .text("Sales ($)");
+        .attr("font-size", 12)
+        .text("Sales (clipped at 95th percentile)");
 
     svg.append("text")
-        .attr("class", "axis-label")
         .attr("transform", "rotate(-90)")
-        .attr("x", -height / 2)
-        .attr("y", 15)
+        .attr("x", -(height / 2))
+        .attr("y", 20)
         .attr("text-anchor", "middle")
-        .text("Profit ($)");
+        .attr("font-size", 12)
+        .text("Profit");
 
-    // Legend
+    // Optional: simple legend for categories
     const legend = svg.append("g")
         .attr("transform", `translate(${width - margin.right - 120}, ${margin.top})`);
 
-    const categories = ['Furniture', 'Office Supplies', 'Technology'];
     categories.forEach((cat, i) => {
-        const legendRow = legend.append("g")
-            .attr("transform", `translate(0, ${i * 25})`);
+        const g = legend.append("g")
+            .attr("transform", `translate(0, ${i * 18})`);
 
-        legendRow.append("circle")
-            .attr("r", 5)
-            .attr("fill", colorScale(cat));
+        g.append("rect")
+            .attr("width", 10)
+            .attr("height", 10)
+            .attr("fill", color(cat));
 
-        legendRow.append("text")
-            .attr("x", 10)
-            .attr("y", 5)
-            .style("font-size", "12px")
+        g.append("text")
+            .attr("x", 15)
+            .attr("y", 9)
+            .attr("font-size", 11)
             .text(cat);
     });
 }
+
 
 
 
@@ -255,6 +256,9 @@ function salesProfitScatter(data) {
 function monthlySalesTrend(data) {
 
     const svg = d3.select("#monthly-sales svg");
+        width = 360,
+        height = 250,
+        margin = { top: 20, right: 20, bottom: 40, left: 60 };
     const container = d3.select("#monthly-sales");
     const containerWidth = container.node().getBoundingClientRect().width;
     const width = containerWidth - 50;
@@ -434,4 +438,5 @@ function regionalSalesMap(data) {
 
     });
 }
+
 
