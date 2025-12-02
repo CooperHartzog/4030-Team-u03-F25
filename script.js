@@ -478,39 +478,128 @@ function createStateBarChart() {
                 Rank: #${chartData.indexOf(d) + 1}
             `);
         })
-        .on('mouseout', function(event, d) {
-            d3.select(this)
-                .attr('fill', colorScale(d.sales))
-                .attr('opacity', 1);
-            hideTooltip();
-        });
-    
-    // Value labels on bars
-    svg.selectAll('.bar-label')
-        .data(chartData)
-        .join('text')
-        .attr('class', 'bar-label')
-        .attr('x', d => x(d.sales) + 5)
-        .attr('y', d => y(d.state) + y.bandwidth() / 2)
-        .attr('dy', '0.35em')
-        .style('font-size', '11px')
-        .style('fill', '#333')
-        .style('font-weight', '500')
-        .text(d => '$' + d3.format('.2s')(d.sales));
-    
-    console.log('✅ STATE CHART: Complete!');
+        .on("mouseout", hideTooltip);
+
+    // X Axis
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0, ${height - margin.bottom})`)
+        .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%b %Y")).ticks(8))
+        .selectAll("text")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end")
+        .attr("dx", "-0.5em")
+        .attr("dy", "0.15em");
+
+    // Y Axis
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(${margin.left}, 0)`)
+        .call(d3.axisLeft(y).tickFormat(d => "$" + d3.format(".2s")(d)));
+
+    // Axis Labels
+    svg.append("text")
+        .attr("class", "axis-label")
+        .attr("x", width / 2)
+        .attr("y", height - 10)
+        .attr("text-anchor", "middle")
+        .text("Month");
+
+    svg.append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", 15)
+        .attr("text-anchor", "middle")
+        .text("Total Sales ($)");
 }
 
-// Tooltip helpers
-function showTooltip(event, html) {
-    tooltip
-        .html(html)
-        .style('left', (event.pageX + 15) + 'px')
-        .style('top', (event.pageY - 10) + 'px')
-        .classed('visible', true);
-}
+// =====================================
+// 4. Regional Sales Bubble Map (USA)
+// =====================================
+function regionalSalesMap(data) {
+  const svg = d3.select("#regional-sales svg");
+  const width = 450, height = 300;
 
-function hideTooltip() {
-    tooltip.classed('visible', false);
+  svg.attr("width", width).attr("height", height);
+  svg.selectAll("*").remove(); // clear before redraws
+
+  // Load canonical US states (TopoJSON) and convert to GeoJSON
+  d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(us => {
+    const geo = topojson.feature(us, us.objects.states); // -> GeoJSON FeatureCollection
+
+    // Aggregate totals per state (and top category per state for highlight sync)
+    const salesByState = d3.rollup(
+      data,
+      v => d3.sum(v, d => d.Sales),
+      d => d.State
+    );
+
+    const byStateCat = d3.rollup(
+      data,
+      v => d3.rollup(v, vv => d3.sum(vv, d => d.Sales), d => d.Category),
+      d => d.State
+    );
+    const topCategory = (state) => {
+      const m = byStateCat.get(state);
+      if (!m) return null;
+      return Array.from(m.entries()).sort((a, b) => b[1] - a[1])[0][0];
+    };
+
+    // Projection & path (fit perfectly to the SVG)
+    const projection = d3.geoAlbersUsa().fitSize([width, height], geo);
+    const path = d3.geoPath(projection);
+
+    // Draw state outlines (inline styles so CSS can’t hide them)
+    svg.append("g")
+      .attr("class", "states")
+      .selectAll("path")
+      .data(geo.features)
+      .join("path")
+        .attr("class", "state-path")
+        .attr("d", path)
+        .style("fill", "#f2f2f2")
+        .style("stroke", "#666")
+        .style("stroke-width", 0.8)
+        .style("vector-effect", "non-scaling-stroke");
+
+    // Bubbles at state centroids
+    const bubbles = geo.features.map(f => {
+      const [cx, cy] = path.centroid(f);
+      const state = f.properties.name;       // full state name
+      const sales = salesByState.get(state) || 0;
+      return { state, sales, x: cx, y: cy, category: topCategory(state) };
+    }).filter(d => Number.isFinite(d.x) && Number.isFinite(d.y));
+
+    const r = d3.scaleSqrt()
+      .domain([0, d3.max(bubbles, d => d.sales) || 1])
+      .range([0, 20]);
+
+    const fmt = d3.format(",.0f");
+
+    const circles = svg.append("g")
+      .selectAll("circle")
+      .data(bubbles)
+      .join("circle")
+        .attr("class", "map-bubble")
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y)
+        .attr("r",  d => r(d.sales))
+        .style("fill", "steelblue")
+        .style("opacity", 0.7)
+        .style("stroke", "white")
+        .style("stroke-width", 1)
+        .on("mouseover", (event, d) => {
+          if (d.category) highlightCategory(d.category);
+          showTooltip(event, `<strong>${d.state}</strong><br>Sales: $${fmt(d.sales)}`);
+        })
+        .on("mouseleave", () => { resetHighlight(); hideTooltip(); })
+        .on("click", (_, d) => monthlySalesTrendForState(data, d.state));
+
+    // Title for keyboard users
+    circles.append("title")
+      .text(d => `${d.state}\nSales: $${fmt(d.sales)}`);
+  })
+  .catch(err => console.error("Map error:", err));
 }
 
