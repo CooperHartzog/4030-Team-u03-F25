@@ -1,3 +1,5 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,42 +12,44 @@
 </head>
 <body>
     <header>
-        <h1>Superstore Sales Dashboard</h1>
-        <p>Visualizing sales, profit, and trends from the Superstore dataset (2011-2014)</p>
+        <h1>📊 Superstore Sales Dashboard</h1>
+        <p>Interactive data visualization with D3.js</p>
     </header>
-    <div id="filters">
-        <label><input type="checkbox" value="Furniture" checked> Furniture</label>
-        <label><input type="checkbox" value="Office Supplies" checked> Office Supplies</label>
-        <label><input type="checkbox" value="Technology" checked> Technology</label>
-    </div>
+
     <div class="dashboard">
-        <section class="chart" id="category-sales">
+        <!-- Bar Chart -->
+        <div id="category-sales" class="chart">
             <h2>Sales by Category</h2>
             <svg></svg>
-        </section>
-        
-        <section class="chart wide" id="sales-profit">
-            <h2>Sales vs Profit</h2>
-            <svg></svg>
-        </section>
-        
-        <section class="chart" id="monthly-sales">
+        </div>
+
+        <!-- Line Chart -->
+        <div id="monthly-sales" class="chart">
             <h2>Monthly Sales Trend</h2>
             <svg></svg>
-        </section>
-        
-        <section class="chart" id="regional-sales">
-            <h2>Sales by State</h2>
+        </div>
+
+        <!-- Scatterplot (full width) -->
+        <div id="sales-profit" class="chart wide">
+            <h2>Sales vs Profit Analysis</h2>
+            <div class="controls">
+                <button class="category-btn active" data-category="all">All Categories</button>
+                <button class="category-btn" data-category="Furniture">Furniture</button>
+                <button class="category-btn" data-category="Office Supplies">Office Supplies</button>
+                <button class="category-btn" data-category="Technology">Technology</button>
+            </div>
             <svg></svg>
-        </section>
+        </div>
+
+        <!-- State Bar Chart (full width) -->
+        <div id="regional-sales" class="chart wide">
+            <h2>Top 15 States by Sales</h2>
+            <svg></svg>
+        </div>
     </div>
-    
-    <!-- Tooltip div -->
-    <div id="tooltip"></div>
-    
+
+    <div class="tooltip"></div>
+
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
