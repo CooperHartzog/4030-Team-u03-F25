@@ -4,6 +4,27 @@
 const tooltip = d3.select("#tooltip");
 let selectedCategories = new Set(["Furniture", "Office Supplies", "Technology"]);
 
+// ===============================
+// Global Highlighting Functions
+// ===============================
+function highlightCategory(category) {
+    d3.selectAll(".data-point")      // scatter points
+        .attr("opacity", d => d.Category === category ? 1 : 0.15);
+
+    d3.selectAll(".bar")             // bar chart
+        .attr("opacity", d => d[0] === category ? 1 : 0.15);
+
+    d3.selectAll(".map-bubble")      // bubbles on the map
+        .attr("opacity", d => d.category === category ? 1 : 0.15);
+}
+
+function resetHighlight() {
+    d3.selectAll(".data-point").attr("opacity", 0.55);
+    d3.selectAll(".bar").attr("opacity", 1);
+    d3.selectAll(".map-bubble").attr("opacity", 0.7);
+}
+
+
 function showTooltip(event, content) {
     tooltip
         .style("left", (event.pageX + 15) + "px")
@@ -19,9 +40,7 @@ function hideTooltip() {
 // ===============================
 // Load Data
 // ===============================
-// ===============================
-// Load Data
-// ===============================
+
 d3.csv("data/Superstore.csv").then(function(data) {
 
     // Convert numeric fields
@@ -110,27 +129,25 @@ function categorySalesChart(data) {
 
     // Bars
     svg.selectAll(".bar")
-        .data(categorySales)
-        .enter()
-        .append("rect")
-        .attr("class", "bar")
-        .attr("x", d => x(d[0]))
-        .attr("y", d => y(d[1]))
-        .attr("width", x.bandwidth())
-        .attr("height", d => y(0) - y(d[1]))
-        .attr("fill", d => colorScale(d[0]))
-        .on("mouseover", function(event, d) {
-            // Change to purple on hover instead of orange
-            d3.select(this).attr("fill", "#9b59b6");
-            const content = `<strong>${d[0]}</strong><br/>
-                           Sales: $${d[1].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            showTooltip(event, content);
-        })
-        .on("mouseout", function(event, d) {
-            // Restore original color
-            d3.select(this).attr("fill", colorScale(d[0]));
-            hideTooltip();
-        });
+    .data(categorySales)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("x", d => x(d[0]))
+    .attr("y", d => y(d[1]))
+    .attr("width", x.bandwidth())
+    .attr("height", d => y(0) - y(d[1]))
+    .attr("fill", d => colorScale(d[0]))
+    .on("mouseover", function(event, d) {
+        highlightCategory(d[0]);   // NEW
+        const content = `<strong>${d[0]}</strong><br/>Sales: $${d[1].toLocaleString()}`;
+        showTooltip(event, content);
+    })
+    .on("mouseout", function(event, d) {
+        resetHighlight();          // NEW
+        hideTooltip();
+    });
+
 
     // X Axis
     svg.append("g")
@@ -223,32 +240,33 @@ function salesProfitScatter(data) {
     // -------------------------------
     //  Draw Points
     // -------------------------------
-    // Draw Points
-svg.selectAll("circle")
+    svg.selectAll(".data-point")
     .data(data.filter(d => d.Sales <= salesClip &&
                            d.Profit >= profitLowClip &&
                            d.Profit <= profitHighClip))
     .enter()
     .append("circle")
-    .attr("cx", d => x(d.Sales))   // ❗ no horizontal jitter
-    .attr("cy", d => y(d.Profit) + (Math.random() * 8 - 4)) // vertical jitter only
+    .attr("class", "data-point")   // NEW
+    .attr("cx", d => x(d.Sales))
+    .attr("cy", d => y(d.Profit) + (Math.random() * 8 - 4))
     .attr("r", 3)
     .attr("fill", d => color(d.Category))
     .attr("opacity", 0.55)
     .on("mouseover", (event, d) => {
-        tooltip.style("opacity", 1)
-               .html(
-                   `<strong>${d['Product Name']}</strong><br>
-                    Sales: $${d.Sales.toFixed(2)}<br>
-                    Profit: $${d.Profit.toFixed(2)}<br>
-                    Category: ${d.Category}`
-               );
+        highlightCategory(d.Category);         // NEW
+        tooltip.style("opacity", 1).html(`
+            <strong>${d['Product Name']}</strong><br>
+            Sales: $${d.Sales.toFixed(2)}<br>
+            Profit: $${d.Profit.toFixed(2)}<br>
+            Category: ${d.Category}
+        `);
     })
     .on("mousemove", (event) => {
         tooltip.style("top", (event.pageY + 10) + "px")
                .style("left", (event.pageX + 10) + "px");
     })
     .on("mouseout", () => {
+        resetHighlight();                       // NEW
         tooltip.style("opacity", 0);
     });
 
