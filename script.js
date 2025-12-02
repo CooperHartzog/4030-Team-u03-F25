@@ -51,14 +51,11 @@ d3.csv("data/Superstore.csv").then(function(data) {
 function categorySalesChart(data) {
 
     const svg = d3.select("#category-sales svg");
-        width = 360,
-        height = 250,
-        margin = { top: 20, right: 20, bottom: 40, left: 60 };
+    width = 360,
+    height = 250,
+    margin = { top: 20, right: 20, bottom: 40, left: 60 };
     const container = d3.select("#category-sales");
     const containerWidth = container.node().getBoundingClientRect().width;
-    const width = containerWidth - 50;
-    const height = 400;
-    const margin = { top: 20, right: 20, bottom: 80, left: 80 };
 
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
@@ -154,98 +151,135 @@ function categorySalesChart(data) {
 function salesProfitScatter(data) {
 
     const svg = d3.select("#sales-profit svg"),
-          width = 800,      // wider for more room
-          height = 350,
-          margin = { top: 30, right: 30, bottom: 60, left: 70 };
+          width = 900,
+          height = 300,
+          margin = { top: 40, right: 200, bottom: 60, left: 80 };
 
     svg.attr("width", width).attr("height", height);
 
-    // Compute a clipped max for Sales (95th percentile) to spread the points
-    const sortedSales = data
-        .map(d => d.Sales)
-        .sort(d3.ascending);
+    // -------------------------------
+    //  Compute clipped extents
+    // -------------------------------
+    const salesSorted = data.map(d => d.Sales).sort(d3.ascending);
+    const profitSorted = data.map(d => d.Profit).sort(d3.ascending);
 
-    const xMax = d3.quantile(sortedSales, 0.95);
+    const salesClip = d3.quantile(salesSorted, 0.95);   // cap at 95%
+    const profitLowClip = d3.quantile(profitSorted, 0.02);  // bottom 2%
+    const profitHighClip = d3.quantile(profitSorted, 0.98); // top 2%
 
+    // -------------------------------
+    //  Scales
+    // -------------------------------
     const x = d3.scaleLinear()
-        .domain([0, xMax])
-        .nice()
+        .domain([0, salesClip])
         .range([margin.left, width - margin.right]);
 
-    // Profit can be negative; keep full extent but nice’d
     const y = d3.scaleLinear()
-        .domain(d3.extent(data, d => d.Profit))
-        .nice()
+        .domain([profitLowClip, profitHighClip])
         .range([height - margin.bottom, margin.top]);
 
-    // Color by category for readability
     const categories = Array.from(new Set(data.map(d => d.Category)));
+
     const color = d3.scaleOrdinal()
         .domain(categories)
-        .range(["#1f77b4", "#ff7f0e", "#2ca02c"]); // 3 categories in Superstore
+        .range(["#1f77b4", "#ff7f0e", "#2ca02c"]);
 
-    // Filter to points within the clipped x domain
-    const filtered = data.filter(d => d.Sales <= xMax);
+    // -------------------------------
+    //  Tooltip
+    // -------------------------------
+    const tooltip = d3.select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("background", "white")
+        .style("border", "1px solid #ccc")
+        .style("padding", "8px")
+        .style("font-size", "12px")
+        .style("pointer-events", "none")
+        .style("opacity", 0);
 
-    // Points
-    svg.selectAll("circle")
-        .data(filtered)
-        .enter()
-        .append("circle")
-        .attr("cx", d => x(d.Sales))
-        .attr("cy", d => y(d.Profit))
-        .attr("r", 3)
-        .attr("fill", d => color(d.Category))
-        .attr("opacity", 0.6);
+    // -------------------------------
+    //  Draw Points
+    // -------------------------------
+    // Draw Points
+svg.selectAll("circle")
+    .data(data.filter(d => d.Sales <= salesClip &&
+                           d.Profit >= profitLowClip &&
+                           d.Profit <= profitHighClip))
+    .enter()
+    .append("circle")
+    .attr("cx", d => x(d.Sales))   // ❗ no horizontal jitter
+    .attr("cy", d => y(d.Profit) + (Math.random() * 8 - 4)) // vertical jitter only
+    .attr("r", 3)
+    .attr("fill", d => color(d.Category))
+    .attr("opacity", 0.55)
+    .on("mouseover", (event, d) => {
+        tooltip.style("opacity", 1)
+               .html(
+                   `<strong>${d['Product Name']}</strong><br>
+                    Sales: $${d.Sales.toFixed(2)}<br>
+                    Profit: $${d.Profit.toFixed(2)}<br>
+                    Category: ${d.Category}`
+               );
+    })
+    .on("mousemove", (event) => {
+        tooltip.style("top", (event.pageY + 10) + "px")
+               .style("left", (event.pageX + 10) + "px");
+    })
+    .on("mouseout", () => {
+        tooltip.style("opacity", 0);
+    });
 
-    // Axes
-    const xAxis = d3.axisBottom(x);
-    const yAxis = d3.axisLeft(y);
 
+    // -------------------------------
+    //  Axes
+    // -------------------------------
     svg.append("g")
         .attr("transform", `translate(0, ${height - margin.bottom})`)
-        .call(xAxis);
+        .call(d3.axisBottom(x));
 
     svg.append("g")
         .attr("transform", `translate(${margin.left}, 0)`)
-        .call(yAxis);
+        .call(d3.axisLeft(y));
 
-    // Axis labels
+    // Axis Labels
     svg.append("text")
-        .attr("x", (width / 2))
+        .attr("x", width / 2)
         .attr("y", height - 15)
         .attr("text-anchor", "middle")
-        .attr("font-size", 12)
-        .text("Sales (clipped at 95th percentile)");
+        .attr("font-size", 13)
+        .text("Sales (Clipped at 95th percentile)");
 
     svg.append("text")
         .attr("transform", "rotate(-90)")
-        .attr("x", -(height / 2))
-        .attr("y", 20)
+        .attr("x", -height / 2)
+        .attr("y", 25)
         .attr("text-anchor", "middle")
-        .attr("font-size", 12)
-        .text("Profit");
+        .attr("font-size", 13)
+        .text("Profit (Clipped at 2%–98%)");
 
-    // Optional: simple legend for categories
+    // -------------------------------
+    //  Legend
+    // -------------------------------
     const legend = svg.append("g")
-        .attr("transform", `translate(${width - margin.right - 120}, ${margin.top})`);
+        .attr("transform", `translate(${width - margin.right + 20}, ${margin.top})`);
 
     categories.forEach((cat, i) => {
         const g = legend.append("g")
-            .attr("transform", `translate(0, ${i * 18})`);
+            .attr("transform", `translate(0, ${i * 20})`);
 
         g.append("rect")
-            .attr("width", 10)
-            .attr("height", 10)
+            .attr("width", 12)
+            .attr("height", 12)
             .attr("fill", color(cat));
 
         g.append("text")
-            .attr("x", 15)
-            .attr("y", 9)
-            .attr("font-size", 11)
+            .attr("x", 20)
+            .attr("y", 10)
+            .style("font-size", "12px")
             .text(cat);
     });
 }
+
 
 
 
@@ -256,14 +290,12 @@ function salesProfitScatter(data) {
 function monthlySalesTrend(data) {
 
     const svg = d3.select("#monthly-sales svg");
-        width = 360,
-        height = 250,
-        margin = { top: 20, right: 20, bottom: 40, left: 60 };
+    width = 360,
+    height = 250,
+    margin = { top: 20, right: 20, bottom: 40, left: 60 };
     const container = d3.select("#monthly-sales");
     const containerWidth = container.node().getBoundingClientRect().width;
-    const width = containerWidth - 50;
-    const height = 400;
-    const margin = { top: 20, right: 20, bottom: 80, left: 80 };
+    
 
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
