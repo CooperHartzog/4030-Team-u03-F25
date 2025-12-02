@@ -2,6 +2,7 @@
 // Tooltip Setup
 // ===============================
 const tooltip = d3.select("#tooltip");
+let selectedCategories = new Set(["Furniture", "Office Supplies", "Technology"]);
 
 function showTooltip(event, content) {
     tooltip
@@ -18,6 +19,9 @@ function hideTooltip() {
 // ===============================
 // Load Data
 // ===============================
+// ===============================
+// Load Data
+// ===============================
 d3.csv("data/Superstore.csv").then(function(data) {
 
     // Convert numeric fields
@@ -26,23 +30,42 @@ d3.csv("data/Superstore.csv").then(function(data) {
         d.Profit = +d.Profit;
         d.Quantity = +d.Quantity;
         d.Discount = +d.Discount;
-
-        // Parse date (Order Date format: DD-MM-YYYY)
         d.OrderDate = d3.timeParse("%d-%m-%Y")(d["Order Date"]);
     });
 
     console.log("Data loaded:", data.length, "rows");
     console.log("Sample row:", data[0]);
 
-    // Build Charts
-    categorySalesChart(data);
-    salesProfitScatter(data);
-    monthlySalesTrend(data);
-    regionalSalesMap(data);
+    // Category filter listener
+    d3.selectAll("#filters input").on("change", function() {
+        if (this.checked) {
+            selectedCategories.add(this.value);
+        } else {
+            selectedCategories.delete(this.value);
+        }
+
+        updateAllCharts();
+    });
+
+    // Draw dashboard initially
+    updateAllCharts();
+
+    // Function that redraws all charts after filtering
+    function updateAllCharts() {
+        const filtered = data.filter(d => selectedCategories.has(d.Category));
+
+        d3.selectAll("svg").selectAll("*").remove();
+
+        categorySalesChart(filtered);
+        salesProfitScatter(filtered);
+        monthlySalesTrend(filtered);
+        regionalSalesMap(filtered);
+    }
 
 }).catch(error => {
     console.error("Error loading CSV:", error);
 });
+
 
 
 // ===============================

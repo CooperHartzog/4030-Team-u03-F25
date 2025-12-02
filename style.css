@@ -26,7 +26,12 @@ header p {
     color: #7f8c8d;
     font-size: 1.1em;
 }
-
+#filters {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 20px;
+    font-size: 16px;
+}
 .dashboard {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
