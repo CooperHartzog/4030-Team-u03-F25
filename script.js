@@ -28,7 +28,7 @@ d3.csv('data/Superstore.csv').then(rawData => {
     createCategoryBarChart();
     createMonthlySalesLineChart();
     createSalesVsProfitScatter();
-    createStateBarChart();
+    regionalSalesMap(data);
 });
 
 // 1. COMPACT BAR CHART - Sales by Category
@@ -391,129 +391,6 @@ function createSalesVsProfitScatter() {
     console.log('✅ SCATTER: Complete!');
 }
 
-// 4. STATE BAR CHART - Top 15 States by Sales
-function createStateBarChart() {
-    console.log('📊 STATE CHART: Starting...');
-    
-    const container = document.querySelector('#regional-sales');
-    if (!container) {
-        console.error('❌ STATE CHART: #regional-sales element NOT FOUND!');
-        return;
-    }
-    
-    console.log('✅ STATE CHART: Container found!');
-    
-    const margin = {top: 20, right: 40, bottom: 50, left: 100};
-    const containerWidth = container.clientWidth;
-    const width = containerWidth - margin.left - margin.right;
-    const height = 500 - margin.top - margin.bottom;
-    
-    const svg = d3.select('#regional-sales svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
-    
-    // Aggregate sales by state
-    const stateData = d3.rollup(
-        data,
-        v => d3.sum(v, d => d.Sales),
-        d => d.State
-    );
-    
-    // Get top 15 states
-    const chartData = Array.from(stateData, ([state, sales]) => ({
-        state,
-        sales
-    }))
-    .sort((a, b) => b.sales - a.sales)
-    .slice(0, 15);
-    
-    console.log('📊 STATE CHART: Top 15 states aggregated');
-    
-    // Scales
-    const x = d3.scaleLinear()
-        .domain([0, d3.max(chartData, d => d.sales)])
-        .nice()
-        .range([0, width]);
-    
-    const y = d3.scaleBand()
-        .domain(chartData.map(d => d.state))
-        .range([0, height])
-        .padding(0.2);
-    
-    // Color scale - gradient from light to dark blue
-    const colorScale = d3.scaleSequential()
-        .domain([d3.min(chartData, d => d.sales), d3.max(chartData, d => d.sales)])
-        .interpolator(d3.interpolateBlues);
-    
-    // Axes
-    svg.append('g')
-        .attr('class', 'axis')
-        .attr('transform', `translate(0,${height})`)
-        .call(d3.axisBottom(x).tickFormat(d => '$' + d3.format('.2s')(d)));
-    
-    svg.append('g')
-        .attr('class', 'axis')
-        .call(d3.axisLeft(y));
-    
-    // Bars
-    svg.selectAll('.state-bar')
-        .data(chartData)
-        .join('rect')
-        .attr('class', 'state-bar')
-        .attr('x', 0)
-        .attr('y', d => y(d.state))
-        .attr('width', d => x(d.sales))
-        .attr('height', y.bandwidth())
-        .attr('fill', d => colorScale(d.sales))
-        .attr('rx', 4)
-        .on('mouseover', function(event, d) {
-            d3.select(this)
-                .attr('fill', '#ea4335')
-                .attr('opacity', 0.8);
-            showTooltip(event, `
-                <strong>${d.state}</strong><br>
-                Total Sales: $${d3.format(',.0f')(d.sales)}<br>
-                Rank: #${chartData.indexOf(d) + 1}
-            `);
-        })
-        .on("mouseout", hideTooltip);
-
-    // X Axis
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform", `translate(0, ${height - margin.bottom})`)
-        .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%b %Y")).ticks(8))
-        .selectAll("text")
-        .attr("transform", "rotate(-45)")
-        .style("text-anchor", "end")
-        .attr("dx", "-0.5em")
-        .attr("dy", "0.15em");
-
-    // Y Axis
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform", `translate(${margin.left}, 0)`)
-        .call(d3.axisLeft(y).tickFormat(d => "$" + d3.format(".2s")(d)));
-
-    // Axis Labels
-    svg.append("text")
-        .attr("class", "axis-label")
-        .attr("x", width / 2)
-        .attr("y", height - 10)
-        .attr("text-anchor", "middle")
-        .text("Month");
-
-    svg.append("text")
-        .attr("class", "axis-label")
-        .attr("transform", "rotate(-90)")
-        .attr("x", -height / 2)
-        .attr("y", 15)
-        .attr("text-anchor", "middle")
-        .text("Total Sales ($)");
-}
-
 // =====================================
 // 4. Regional Sales Bubble Map (USA)
 // =====================================
@@ -550,7 +427,7 @@ function regionalSalesMap(data) {
     const projection = d3.geoAlbersUsa().fitSize([width, height], geo);
     const path = d3.geoPath(projection);
 
-    // Draw state outlines (inline styles so CSS can’t hide them)
+    // Draw state outlines (inline styles so CSS can't hide them)
     svg.append("g")
       .attr("class", "states")
       .selectAll("path")
