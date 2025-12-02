@@ -196,14 +196,14 @@ function createCategoryBarChart() {
             .on('mouseout', hideTooltip);
     }
 
-    console.log('📊 BAR CHART: Complete!');
+    console.log('BAR CHART: Complete!');
 }
 
 // ===============================
 // 2. LINE CHART - Monthly Sales Trend (global or state)
 // ===============================
 function createMonthlySalesLineChart() {
-    console.log('📈 LINE CHART: Rendering with state:', selectedState);
+    console.log('LINE CHART: Rendering with state:', selectedState);
     const margin = {top: 20, right: 20, bottom: 50, left: 60};
     const baseWidth = 260;
     const baseHeight = 220;
@@ -315,18 +315,18 @@ function createMonthlySalesLineChart() {
             hideTooltip();
         });
     
-    console.log('📈 LINE CHART: Complete!');
+    console.log('LINE CHART: Complete!');
 }
 
 // ===============================
 // 3. SCATTERPLOT - Sales vs Profit (main view)
 // ===============================
 function createSalesVsProfitScatter() {
-    console.log('🔵 SCATTER: Rendering with category/state:', selectedCategory, selectedState);
+    console.log('SCATTER: Rendering with category/state:', selectedCategory, selectedState);
     
     const container = document.querySelector('#sales-profit');
     if (!container) {
-        console.error('❌ SCATTER: #sales-profit element NOT FOUND!');
+        console.error('SCATTER: #sales-profit element NOT FOUND!');
         return;
     }
     
@@ -364,7 +364,7 @@ function createSalesVsProfitScatter() {
     // Color scale by category
     const color = d3.scaleOrdinal()
         .domain(['Furniture', 'Office Supplies', 'Technology'])
-        .range(['#4285f4', '#34a853', '#fbbc04']);
+        .range(['#34a853', '#fbbc04', '#4285f4']);
     
     // Scales
     const x = d3.scaleLinear()
@@ -490,7 +490,7 @@ function createSalesVsProfitScatter() {
             .text(cat);
     });
     
-    console.log('✅ SCATTER: Complete!');
+    console.log('SCATTER: Complete!');
 }
 
 // ===============================
@@ -498,7 +498,7 @@ function createSalesVsProfitScatter() {
 // drives state selection
 // ===============================
 function regionalSalesMap(data) {
-    console.log('🗺️ REGIONAL MAP: Starting...');
+    console.log('REGIONAL MAP: Starting...');
     
     const container = document.querySelector('#regional-sales');
     const svg = d3.select('#regional-sales svg');
@@ -611,7 +611,7 @@ function regionalSalesMap(data) {
             circles.append('title')
                 .text(d => `${d.state}\nSales: $${fmt(d.sales)}`);
             
-            console.log('🗺️ REGIONAL MAP: Complete!');
+            console.log('REGIONAL MAP: Complete!');
         })
         .catch(err => console.error('Map error:', err));
 }
