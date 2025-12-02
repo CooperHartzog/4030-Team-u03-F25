@@ -34,7 +34,7 @@ d3.csv('data/Superstore.csv').then(rawData => {
 // 1. COMPACT BAR CHART - Sales by Category
 function createCategoryBarChart() {
     console.log('📊 BAR CHART: Starting...');
-    const margin = {top: 20, right: 20, bottom: 70, left: 60}; // INCREASED bottom margin
+    const margin = {top: 20, right: 20, bottom: 70, left: 60};
     const width = 310 - margin.left - margin.right;
     const height = 250 - margin.top - margin.bottom;
     
@@ -80,8 +80,8 @@ function createCategoryBarChart() {
         .selectAll('text')
         .attr('transform', 'rotate(-45)')
         .style('text-anchor', 'end')
-        .attr('dx', '-0.5em')  // ADDED: shift text left
-        .attr('dy', '0.5em');  // ADDED: shift text down
+        .attr('dx', '-0.5em')
+        .attr('dy', '0.5em');
     
     svg.append('g')
         .attr('class', 'axis')
@@ -392,91 +392,104 @@ function createSalesVsProfitScatter() {
 }
 
 // =====================================
-// 4. Regional Sales Bubble Map (USA)
+// 4. Regional Sales Bubble Map (USA) - LARGER
 // =====================================
 function regionalSalesMap(data) {
-  const svg = d3.select("#regional-sales svg");
-  const width = 450, height = 300;
+    console.log('🗺️ REGIONAL MAP: Starting...');
+    
+    const container = document.querySelector('#regional-sales');
+    const svg = d3.select("#regional-sales svg");
+    
+    // Make it larger to fill the space
+    const containerWidth = container ? container.clientWidth : 1200;
+    const width = Math.min(containerWidth - 50, 1200);
+    const height = 600;
 
-  svg.attr("width", width).attr("height", height);
-  svg.selectAll("*").remove(); // clear before redraws
+    svg.attr("width", width).attr("height", height);
+    svg.selectAll("*").remove();
 
-  // Load canonical US states (TopoJSON) and convert to GeoJSON
-  d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(us => {
-    const geo = topojson.feature(us, us.objects.states); // -> GeoJSON FeatureCollection
+    // Load canonical US states (TopoJSON) and convert to GeoJSON
+    d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(us => {
+        const geo = topojson.feature(us, us.objects.states);
 
-    // Aggregate totals per state (and top category per state for highlight sync)
-    const salesByState = d3.rollup(
-      data,
-      v => d3.sum(v, d => d.Sales),
-      d => d.State
-    );
+        // Aggregate totals per state
+        const salesByState = d3.rollup(
+            data,
+            v => d3.sum(v, d => d.Sales),
+            d => d.State
+        );
 
-    const byStateCat = d3.rollup(
-      data,
-      v => d3.rollup(v, vv => d3.sum(vv, d => d.Sales), d => d.Category),
-      d => d.State
-    );
-    const topCategory = (state) => {
-      const m = byStateCat.get(state);
-      if (!m) return null;
-      return Array.from(m.entries()).sort((a, b) => b[1] - a[1])[0][0];
-    };
+        // Projection & path (fit perfectly to the SVG)
+        const projection = d3.geoAlbersUsa().fitSize([width, height], geo);
+        const path = d3.geoPath(projection);
 
-    // Projection & path (fit perfectly to the SVG)
-    const projection = d3.geoAlbersUsa().fitSize([width, height], geo);
-    const path = d3.geoPath(projection);
+        // Draw state outlines
+        svg.append("g")
+            .attr("class", "states")
+            .selectAll("path")
+            .data(geo.features)
+            .join("path")
+            .attr("class", "state-path")
+            .attr("d", path)
+            .style("fill", "#f2f2f2")
+            .style("stroke", "#666")
+            .style("stroke-width", 1)
+            .style("vector-effect", "non-scaling-stroke");
 
-    // Draw state outlines (inline styles so CSS can't hide them)
-    svg.append("g")
-      .attr("class", "states")
-      .selectAll("path")
-      .data(geo.features)
-      .join("path")
-        .attr("class", "state-path")
-        .attr("d", path)
-        .style("fill", "#f2f2f2")
-        .style("stroke", "#666")
-        .style("stroke-width", 0.8)
-        .style("vector-effect", "non-scaling-stroke");
+        // Bubbles at state centroids
+        const bubbles = geo.features.map(f => {
+            const [cx, cy] = path.centroid(f);
+            const state = f.properties.name;
+            const sales = salesByState.get(state) || 0;
+            return { state, sales, x: cx, y: cy };
+        }).filter(d => Number.isFinite(d.x) && Number.isFinite(d.y));
 
-    // Bubbles at state centroids
-    const bubbles = geo.features.map(f => {
-      const [cx, cy] = path.centroid(f);
-      const state = f.properties.name;       // full state name
-      const sales = salesByState.get(state) || 0;
-      return { state, sales, x: cx, y: cy, category: topCategory(state) };
-    }).filter(d => Number.isFinite(d.x) && Number.isFinite(d.y));
+        // Larger bubble scale for bigger map
+        const r = d3.scaleSqrt()
+            .domain([0, d3.max(bubbles, d => d.sales) || 1])
+            .range([0, 35]);
 
-    const r = d3.scaleSqrt()
-      .domain([0, d3.max(bubbles, d => d.sales) || 1])
-      .range([0, 20]);
+        const fmt = d3.format(",.0f");
 
-    const fmt = d3.format(",.0f");
+        const circles = svg.append("g")
+            .selectAll("circle")
+            .data(bubbles)
+            .join("circle")
+            .attr("class", "map-bubble")
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y)
+            .attr("r", d => r(d.sales))
+            .style("fill", "steelblue")
+            .style("opacity", 0.7)
+            .style("stroke", "white")
+            .style("stroke-width", 2)
+            .on("mouseover", (event, d) => {
+                showTooltip(event, `<strong>${d.state}</strong><br>Sales: $${fmt(d.sales)}`);
+            })
+            .on("mouseleave", () => {
+                hideTooltip();
+            });
 
-    const circles = svg.append("g")
-      .selectAll("circle")
-      .data(bubbles)
-      .join("circle")
-        .attr("class", "map-bubble")
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y)
-        .attr("r",  d => r(d.sales))
-        .style("fill", "steelblue")
-        .style("opacity", 0.7)
-        .style("stroke", "white")
-        .style("stroke-width", 1)
-        .on("mouseover", (event, d) => {
-          if (d.category) highlightCategory(d.category);
-          showTooltip(event, `<strong>${d.state}</strong><br>Sales: $${fmt(d.sales)}`);
-        })
-        .on("mouseleave", () => { resetHighlight(); hideTooltip(); })
-        .on("click", (_, d) => monthlySalesTrendForState(data, d.state));
-
-    // Title for keyboard users
-    circles.append("title")
-      .text(d => `${d.state}\nSales: $${fmt(d.sales)}`);
-  })
-  .catch(err => console.error("Map error:", err));
+        // Title for keyboard users
+        circles.append("title")
+            .text(d => `${d.state}\nSales: $${fmt(d.sales)}`);
+            
+        console.log('🗺️ REGIONAL MAP: Complete!');
+    })
+    .catch(err => console.error("Map error:", err));
 }
 
+// =====================================
+// TOOLTIP HELPERS
+// =====================================
+function showTooltip(event, html) {
+    tooltip
+        .html(html)
+        .style('left', (event.pageX + 10) + 'px')
+        .style('top', (event.pageY - 10) + 'px')
+        .classed('visible', true);
+}
+
+function hideTooltip() {
+    tooltip.classed('visible', false);
+}
