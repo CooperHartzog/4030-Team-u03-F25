@@ -506,86 +506,88 @@ function monthlySalesTrend(data) {
 // 4. Regional Sales Bubble Map (USA)
 // =====================================
 function regionalSalesMap(data) {
+  const svg = d3.select("#regional-sales svg");
+  const width = 450, height = 300;
 
-    const svg = d3.select("#regional-sales svg"),
-          width = 450,
-          height = 300;
+  svg.attr("width", width).attr("height", height);
+  svg.selectAll("*").remove(); // clear before redraws
 
-    svg.attr("width", width).attr("height", height);
+  // Load canonical US states (TopoJSON) and convert to GeoJSON
+  d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(us => {
+    const geo = topojson.feature(us, us.objects.states); // -> GeoJSON FeatureCollection
 
-    // -----------------------------------
-    // Load GeoJSON + then draw the map
-    // -----------------------------------
-    d3.json("data/us-states.json").then(function(geo) {
+    // Aggregate totals per state (and top category per state for highlight sync)
+    const salesByState = d3.rollup(
+      data,
+      v => d3.sum(v, d => d.Sales),
+      d => d.State
+    );
 
-        // -----------------------------------------
-        // Aggregate sales by state
-        // -----------------------------------------
-        const salesByState = d3.rollups(
-            data,
-            v => d3.sum(v, d => d.Sales),
-            d => d.State
-        );
+    const byStateCat = d3.rollup(
+      data,
+      v => d3.rollup(v, vv => d3.sum(vv, d => d.Sales), d => d.Category),
+      d => d.State
+    );
+    const topCategory = (state) => {
+      const m = byStateCat.get(state);
+      if (!m) return null;
+      return Array.from(m.entries()).sort((a, b) => b[1] - a[1])[0][0];
+    };
 
-        const salesMap = new Map(salesByState);
+    // Projection & path (fit perfectly to the SVG)
+    const projection = d3.geoAlbersUsa().fitSize([width, height], geo);
+    const path = d3.geoPath(projection);
 
-        // -----------------------------------------
-        // Projection & Path
-        // -----------------------------------------
-        const projection = d3.geoAlbersUsa()
-            .translate([width / 2, height / 2])
-            .scale(400);
+    // Draw state outlines (inline styles so CSS can’t hide them)
+    svg.append("g")
+      .attr("class", "states")
+      .selectAll("path")
+      .data(geo.features)
+      .join("path")
+        .attr("class", "state-path")
+        .attr("d", path)
+        .style("fill", "#f2f2f2")
+        .style("stroke", "#666")
+        .style("stroke-width", 0.8)
+        .style("vector-effect", "non-scaling-stroke");
 
-        const path = d3.geoPath().projection(projection);
+    // Bubbles at state centroids
+    const bubbles = geo.features.map(f => {
+      const [cx, cy] = path.centroid(f);
+      const state = f.properties.name;       // full state name
+      const sales = salesByState.get(state) || 0;
+      return { state, sales, x: cx, y: cy, category: topCategory(state) };
+    }).filter(d => Number.isFinite(d.x) && Number.isFinite(d.y));
 
-        // Draw states
-        svg.selectAll("path")
-            .data(geo.features)
-            .enter()
-            .append("path")
-            .attr("d", path)
-            .attr("fill", "#e0e0e0")
-            .attr("stroke", "#999");
+    const r = d3.scaleSqrt()
+      .domain([0, d3.max(bubbles, d => d.sales) || 1])
+      .range([0, 20]);
 
-        // -----------------------------------------
-        // Prepare bubble data
-        // -----------------------------------------
-        const bubbles = geo.features.map(d => {
-            const center = path.centroid(d);
-            const stateName = d.properties.name;
-            const sales = salesMap.get(stateName) || 0;
+    const fmt = d3.format(",.0f");
 
-            return {
-                state: stateName,
-                sales: sales,
-                x: center[0],
-                y: center[1]
-            };
-        });
+    const circles = svg.append("g")
+      .selectAll("circle")
+      .data(bubbles)
+      .join("circle")
+        .attr("class", "map-bubble")
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y)
+        .attr("r",  d => r(d.sales))
+        .style("fill", "steelblue")
+        .style("opacity", 0.7)
+        .style("stroke", "white")
+        .style("stroke-width", 1)
+        .on("mouseover", (event, d) => {
+          if (d.category) highlightCategory(d.category);
+          showTooltip(event, `<strong>${d.state}</strong><br>Sales: $${fmt(d.sales)}`);
+        })
+        .on("mouseleave", () => { resetHighlight(); hideTooltip(); })
+        .on("click", (_, d) => monthlySalesTrendForState(data, d.state));
 
-        // Bubble radius scale
-        const r = d3.scaleSqrt()
-            .domain([0, d3.max(bubbles, d => d.sales)])
-            .range([0, 20]);
-
-        // Draw circles
-        svg.selectAll("circle")
-            .data(bubbles.filter(d => d.x && d.y))
-            .enter()
-            .append("circle")
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y)
-            .attr("r", d => r(d.sales))
-            .attr("fill", "steelblue")
-            .attr("opacity", 0.7)
-            .attr("stroke", "white");
-
-        // OPTIONAL: Add simple tooltips
-        svg.selectAll("circle")
-            .append("title")
-            .text(d => `${d.state}: $${d.sales.toLocaleString()}`);
-
-    });
+    // Title for keyboard users
+    circles.append("title")
+      .text(d => `${d.state}\nSales: $${fmt(d.sales)}`);
+  })
+  .catch(err => console.error("Map error:", err));
 }
-
 
