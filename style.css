@@ -1,183 +1,167 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Style.css */
+
+* {
     margin: 0;
-    padding: 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f5f5f5;
+    color: #333;
 }
 
 header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
     text-align: center;
-    margin-bottom: 40px;
-    padding: 20px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 header h1 {
-    margin: 0 0 10px 0;
-    color: #2c3e50;
-    font-size: 2.5em;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
 }
 
 header p {
-    margin: 0;
-    color: #7f8c8d;
-    font-size: 1.1em;
+    font-size: 1.1rem;
+    opacity: 0.9;
 }
-#filters {
-    margin-bottom: 20px;
-    display: flex;
-    gap: 20px;
-    font-size: 16px;
-}
+
 .dashboard {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: auto;
-    grid-gap: 24px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
 }
 
 .chart {
     background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chart:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
 
 .chart.wide {
     grid-column: 1 / -1;
 }
 
-
-
-.chart:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
 .chart h2 {
-    margin: 0 0 20px 0;
-    color: #34495e;
-    font-size: 1.5em;
-    border-bottom: 3px solid #3498db;
-    padding-bottom: 10px;
-}
-
-.chart svg {
-    width: 100%;
-    height: 300px; /* this is a fallback; JS will overwrite height */
-}
-
-/* Tooltip styling */
-#tooltip {
-    position: absolute;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    border-radius: 8px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s;
-    font-size: 14px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    z-index: 1000;
-    max-width: 250px;
-}
-
-#tooltip.visible {
-    opacity: 1;
-}
-
-#tooltip strong {
-    color: #3498db;
-    display: block;
-    margin-bottom: 5px;
-}
-
-/* Chart specific styles */
-.bar {
-    transition: fill 0.3s;
-    cursor: pointer;
-}
-
-.scatter-point {
-    transition: all 0.3s;
-}
-
-.scatter-point:hover {
-    r: 6;
-    stroke: #9b59b6;
-    stroke-width: 2;
-    cursor: pointer;
-}
-
-.line-path {
-    fill: none;
-    stroke-width: 3;
-}
-
-.state-path {
-    stroke: #fff;
-    stroke-width: 1;
-    transition: fill 0.3s;
-}
-
-.state-path:hover {
-    fill: #9b59b6 !important;
-    cursor: pointer;
-}
-
-.bubble {
-    transition: all 0.3s;
-}
-
-.bubble:hover {
-    stroke: #9b59b6;
-    stroke-width: 3;
-    cursor: pointer;
-}
-
-/* Axis styling */
-.axis text {
-    font-size: 12px;
-    fill: #555;
-}
-
-.axis path,
-.axis line {
-    stroke: #ccc;
-}
-
-.axis-label {
-    font-size: 14px;
-    fill: #333;
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 1rem;
     font-weight: 600;
 }
 
-/* Responsive design */
-@media (max-width: 1100px) {
+.controls {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.category-btn:hover {
+    border-color: #4285f4;
+    background: #f0f7ff;
+}
+
+.category-btn.active {
+    background: #4285f4;
+    color: white;
+    border-color: #4285f4;
+}
+
+.category-btn[data-category="Furniture"].active {
+    background: #4285f4;
+    border-color: #4285f4;
+}
+
+.category-btn[data-category="Office Supplies"].active {
+    background: #34a853;
+    border-color: #34a853;
+}
+
+.category-btn[data-category="Technology"].active {
+    background: #fbbc04;
+    border-color: #fbbc04;
+    color: #333;
+}
+
+svg {
+    display: block;
+}
+
+.axis line,
+.axis path {
+    stroke: #ddd;
+}
+
+.axis text {
+    fill: #666;
+    font-size: 11px;
+}
+
+.grid line {
+    stroke: #f0f0f0;
+    stroke-opacity: 0.7;
+}
+
+.grid path {
+    stroke-width: 0;
+}
+
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1000;
+    max-width: 200px;
+    line-height: 1.4;
+}
+
+.tooltip.visible {
+    opacity: 1;
+}
+
+.tooltip strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
     .dashboard {
         grid-template-columns: 1fr;
     }
-}
-
-@media (max-width: 600px) {
-    body {
-        padding: 10px;
-    }
     
     header h1 {
-        font-size: 1.8em;
+        font-size: 1.8rem;
     }
-    
-    .chart {
-        padding: 15px;
-    }
-    
-    .chart svg {
-        height: 300px;
-    }
-
 }
