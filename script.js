@@ -322,6 +322,82 @@ function salesProfitScatter(data) {
 }
 
 
+function monthlySalesTrendForState(data, stateName) {
+    const svg = d3.select("#monthly-sales svg");
+    svg.selectAll("*").remove();  // Clear existing line chart
+
+    const width = 360,
+          height = 250,
+          margin = { top: 20, right: 20, bottom: 40, left: 60 };
+
+    // Filter to selected state
+    const filtered = data.filter(d => d.State === stateName);
+
+    // Group by month
+    const monthlySales = d3.rollups(
+        filtered,
+        v => d3.sum(v, d => d.Sales),
+        d => d3.timeMonth(d.OrderDate)
+    ).sort((a, b) => a[0] - b[0]);
+
+    const x = d3.scaleTime()
+        .domain(d3.extent(monthlySales, d => d[0]))
+        .range([margin.left, width - margin.right]);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(monthlySales, d => d[1]) || 1])
+        .nice()
+        .range([height - margin.bottom, margin.top]);
+
+    // Line
+    const line = d3.line()
+        .x(d => x(d[0]))
+        .y(d => y(d[1]))
+        .curve(d3.curveMonotoneX);
+
+    svg.append("path")
+        .datum(monthlySales)
+        .attr("fill", "none")
+        .attr("stroke", "#e67e22")
+        .attr("stroke-width", 3)
+        .attr("d", line);
+
+    // Points
+    svg.selectAll(".state-point")
+        .data(monthlySales)
+        .enter()
+        .append("circle")
+        .attr("class", "state-point")
+        .attr("cx", d => x(d[0]))
+        .attr("cy", d => y(d[1]))
+        .attr("r", 4)
+        .attr("fill", "#d35400");
+
+    // Axes
+    svg.append("g")
+        .attr("transform", `translate(0, ${height - margin.bottom})`)
+        .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%b %Y")).ticks(6))
+        .selectAll("text")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end");
+
+    svg.append("g")
+        .attr("transform", `translate(${margin.left}, 0)`)
+        .call(d3.axisLeft(y).tickFormat(d => "$" + d3.format(".2s")(d)));
+
+    // Label
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", margin.top)
+        .attr("text-anchor", "middle")
+        .attr("font-weight", "bold")
+        .text(`Monthly Sales – ${stateName}`);
+}
+
+function resetMonthlyLine(data) {
+    d3.select("#monthly-sales svg").selectAll("*").remove();
+    monthlySalesTrend(data);
+}
 
 
 
