@@ -10,41 +10,47 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: #f5f5f5;
     color: #333;
+    overflow: hidden;
+    height: 100vh;
 }
 
 header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 2rem;
+    padding: 0.75rem 1rem;
     text-align: center;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
 }
 
 header p {
-    font-size: 1.1rem;
+    font-size: 0.85rem;
     opacity: 0.9;
 }
 
 .dashboard {
-    max-width: 1400px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    max-width: 100%;
+    margin: 0.5rem auto;
+    padding: 0 0.5rem;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    height: calc(100vh - 80px);
 }
 
 .chart {
     background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
+    border-radius: 8px;
+    padding: 1rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .chart:hover {
@@ -54,13 +60,22 @@ header p {
 
 .chart.wide {
     grid-column: 1 / -1;
+    height: calc(50vh - 50px);
+}
+
+.chart:not(.wide) {
+    height: calc(50vh - 50px);
 }
 
 .chart h2 {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: #333;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     font-weight: 600;
+}
+
+.chart svg {
+    flex: 1;
 }
 
 .controls {

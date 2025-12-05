@@ -63,9 +63,10 @@ function applyFilters() {
 // ===============================
 function createCategoryBarChart() {
     console.log('📊 BAR CHART: Rendering with state:', selectedState);
-    const margin = {top: 20, right: 20, bottom: 70, left: 60};
-    const baseWidth = 260;   // smaller to fit on one page
-    const baseHeight = 220;
+    const container = document.querySelector('#category-sales');
+    const margin = {top: 10, right: 10, bottom: 60, left: 50};
+    const baseWidth = container.clientWidth;
+    const baseHeight = container.clientHeight - 40; // account for title
     const width = baseWidth - margin.left - margin.right;
     const height = baseHeight - margin.top - margin.bottom;
     
@@ -153,7 +154,7 @@ function createCategoryBarChart() {
             applyFilters();
         });
 
-    // If a state is selected, overlay mini-bars showing state’s contribution
+    // If a state is selected, overlay mini-bars showing state's contribution
     if (selectedState) {
         // Aggregate state sales by category
         const stateData = data.filter(d => d.State === selectedState);
@@ -204,9 +205,10 @@ function createCategoryBarChart() {
 // ===============================
 function createMonthlySalesLineChart() {
     console.log('LINE CHART: Rendering with state:', selectedState);
-    const margin = {top: 20, right: 20, bottom: 50, left: 60};
-    const baseWidth = 260;
-    const baseHeight = 220;
+    const container = document.querySelector('#monthly-sales');
+    const margin = {top: 10, right: 10, bottom: 50, left: 50};
+    const baseWidth = container.clientWidth;
+    const baseHeight = container.clientHeight - 40; // account for title
     const width = baseWidth - margin.left - margin.right;
     const height = baseHeight - margin.top - margin.bottom;
     
@@ -330,10 +332,11 @@ function createSalesVsProfitScatter() {
         return;
     }
     
-    const margin = {top: 20, right: 30, bottom: 60, left: 70};
+    const margin = {top: 10, right: 30, bottom: 50, left: 60};
     const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight - 40; // account for title
     const width = containerWidth - margin.left - margin.right;
-    const height = 420 - margin.top - margin.bottom; // slightly smaller to fit page
+    const height = containerHeight - margin.top - margin.bottom;
     
     const root = d3.select('#sales-profit svg')
         .attr('width', containerWidth)
@@ -407,18 +410,18 @@ function createSalesVsProfitScatter() {
     // Axis labels
     svg.append('text')
         .attr('x', width / 2)
-        .attr('y', height + 45)
+        .attr('y', height + 40)
         .attr('text-anchor', 'middle')
-        .style('font-size', '12px')
+        .style('font-size', '11px')
         .style('fill', '#666')
         .text('Sales ($)');
-    
+
     svg.append('text')
         .attr('transform', 'rotate(-90)')
         .attr('x', -height / 2)
-        .attr('y', -50)
+        .attr('y', -45)
         .attr('text-anchor', 'middle')
-        .style('font-size', '12px')
+        .style('font-size', '11px')
         .style('fill', '#666')
         .text('Profit ($)');
     
@@ -470,22 +473,22 @@ function createSalesVsProfitScatter() {
     
     // Legend (always visible; you can conditionally show if you want)
     const legend = svg.append('g')
-        .attr('transform', `translate(${width - 150}, 10)`);
-    
+        .attr('transform', `translate(${width - 140}, 5)`);
+
     const categories = ['Furniture', 'Office Supplies', 'Technology'];
     categories.forEach((cat, i) => {
         const g = legend.append('g')
-            .attr('transform', `translate(0, ${i * 22})`);
-        
+            .attr('transform', `translate(0, ${i * 20})`);
+
         g.append('circle')
-            .attr('r', 6)
+            .attr('r', 5)
             .attr('fill', color(cat))
             .attr('opacity', 0.6);
-        
+
         g.append('text')
-            .attr('x', 12)
+            .attr('x', 10)
             .attr('y', 4)
-            .style('font-size', '12px')
+            .style('font-size', '11px')
             .style('fill', '#666')
             .text(cat);
     });
@@ -499,13 +502,14 @@ function createSalesVsProfitScatter() {
 // ===============================
 function regionalSalesMap(data) {
     console.log('REGIONAL MAP: Starting...');
-    
+
     const container = document.querySelector('#regional-sales');
     const svg = d3.select('#regional-sales svg');
-    
-    const containerWidth = container ? container.clientWidth : 1200;
-    const width = Math.min(containerWidth - 50, 1200);
-    const height = 350; // smaller to keep everything on one page
+
+    const containerWidth = container ? container.clientWidth : 400;
+    const containerHeight = container ? container.clientHeight - 40 : 300; // account for title
+    const width = containerWidth - 20;
+    const height = containerHeight - 20;
 
     svg.attr('width', width).attr('height', height);
     svg.selectAll('*').remove();
@@ -532,7 +536,7 @@ function regionalSalesMap(data) {
                 .attr('d', path)
                 .style('fill', '#f2f2f2')
                 .style('stroke', '#666')
-                .style('stroke-width', 1)
+                .style('stroke-width', 0.5)
                 .style('vector-effect', 'non-scaling-stroke');
 
             const bubbles = geo.features.map(f => {
@@ -544,7 +548,7 @@ function regionalSalesMap(data) {
 
             const r = d3.scaleSqrt()
                 .domain([0, d3.max(bubbles, d => d.sales) || 1])
-                .range([0, 20]);
+                .range([0, 12]);
 
             const fmt = d3.format(',.0f');
 
@@ -559,7 +563,7 @@ function regionalSalesMap(data) {
                 .style('fill', 'steelblue')
                 .style('opacity', 0.7)
                 .style('stroke', 'white')
-                .style('stroke-width', 2)
+                .style('stroke-width', 1)
                 .on('mouseover', (event, d) => {
                     showTooltip(event, `
                         <strong>${d.state}</strong><br>
@@ -604,7 +608,7 @@ function regionalSalesMap(data) {
                             selectedState && b.state === selectedState ? '#000' : '#fff'
                         )
                         .style('stroke-width', b =>
-                            selectedState && b.state === selectedState ? 3 : 2
+                            selectedState && b.state === selectedState ? 2 : 1
                         );
                 });
 
