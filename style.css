@@ -1,4 +1,4 @@
-/* Style.css */
+/* Style.css - Dark Mode */
 
 * {
     margin: 0;
@@ -8,70 +8,93 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: #f5f5f5;
-    color: #333;
+    background: #0d0d14;
+    color: #eee;
     overflow: hidden;
     height: 100vh;
 }
 
 header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4a1a6b 0%, #2d1b4e 100%);
     color: white;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     text-align: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
 header h1 {
-    font-size: 1.5rem;
-    margin-bottom: 0.25rem;
+    font-size: 1.3rem;
+    margin-bottom: 0.15rem;
 }
 
 header p {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     opacity: 0.9;
 }
 
 .dashboard {
     max-width: 100%;
-    margin: 0.5rem auto;
+    margin: 0.4rem auto;
     padding: 0 0.5rem;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    height: calc(100vh - 80px);
+    column-gap: 0.5rem;
+    row-gap: 0;
+    height: calc(100vh - 60px);
 }
 
 .chart {
-    background: white;
+    background: #0f1219;
     border-radius: 8px;
-    padding: 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    border: 1px solid #1e2738;
 }
 
 .chart:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
 }
 
 .chart.wide {
     grid-column: 1 / -1;
-    height: calc(50vh - 50px);
+    height: calc(60vh - 40px);
+    padding-top: 0.4rem;
+    overflow: visible;
 }
 
 .chart:not(.wide) {
-    height: calc(50vh - 50px);
+    height: calc(40vh - 40px);
 }
 
 .chart h2 {
-    font-size: 1.1rem;
-    color: #333;
-    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #eee;
+    margin-bottom: 0.25rem;
     font-weight: 600;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.chart-header h2 {
+    margin-bottom: 0;
+}
+
+#map-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 8px;
+    color: #aaa;
 }
 
 .chart svg {
@@ -87,8 +110,9 @@ header p {
 
 .category-btn {
     padding: 0.5rem 1rem;
-    border: 2px solid #ddd;
-    background: white;
+    border: 2px solid #2a3040;
+    background: #12151c;
+    color: #eee;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.9rem;
@@ -98,7 +122,7 @@ header p {
 
 .category-btn:hover {
     border-color: #4285f4;
-    background: #f0f7ff;
+    background: #1a2030;
 }
 
 .category-btn.active {
@@ -129,16 +153,16 @@ svg {
 
 .axis line,
 .axis path {
-    stroke: #ddd;
+    stroke: #2a3040;
 }
 
 .axis text {
-    fill: #666;
+    fill: #aaa;
     font-size: 11px;
 }
 
 .grid line {
-    stroke: #f0f0f0;
+    stroke: #1e2530;
     stroke-opacity: 0.7;
 }
 
@@ -148,7 +172,7 @@ svg {
 
 .tooltip {
     position: absolute;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(10, 10, 18, 0.95);
     color: white;
     padding: 10px 12px;
     border-radius: 6px;
@@ -159,6 +183,7 @@ svg {
     z-index: 1000;
     max-width: 200px;
     line-height: 1.4;
+    border: 1px solid #2a3545;
 }
 
 .tooltip.visible {
@@ -169,6 +194,11 @@ svg {
     display: block;
     margin-bottom: 4px;
     font-size: 14px;
+}
+
+/* State paths in map */
+.state-path {
+    transition: opacity 0.2s;
 }
 
 @media (max-width: 768px) {
