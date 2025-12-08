@@ -218,7 +218,7 @@ function createCategoryBarChart() {
 function createMonthlySalesLineChart() {
     console.log('LINE CHART: Rendering with state:', selectedState);
     const container = document.querySelector('#monthly-sales');
-    const margin = {top: 10, right: 10, bottom: 60, left: 50}; // increased bottom margin
+    const margin = {top: 10, right: 20, bottom: 60, left: 50}; // increased right margin
     const baseWidth = container.clientWidth;
     const baseHeight = container.clientHeight - 40; // account for title
     const width = baseWidth - margin.left - margin.right;
@@ -293,8 +293,8 @@ function createMonthlySalesLineChart() {
         .attr('class', 'axis')
         .call(d3.axisLeft(y).ticks(4).tickFormat(d => '$' + d3.format('.2s')(d)));
     
-    // Line color changes slightly for state mode
-    const lineColor = selectedState ? '#e67e22' : '#4285f4';
+    // Line color - uniform red
+    const lineColor = '#dc2626';
     
     const line = d3.line()
         .x(d => x(d.date))
@@ -317,7 +317,7 @@ function createMonthlySalesLineChart() {
         .attr('cx', d => x(d.date))
         .attr('cy', d => y(d.sales))
         .attr('r', 3)
-        .attr('fill', selectedState ? '#d35400' : '#34a853')
+        .attr('fill', '#7f1d1d')
         .attr('stroke', 'white')
         .attr('stroke-width', 2)
         .on('mouseover', function(event, d) {
@@ -568,7 +568,7 @@ function regionalSalesMap(data) {
             const colorScale = d3.scalePow()
                 .exponent(0.5)
                 .domain([0, maxSales])
-                .range(['#ffffff', '#22c55e'])
+                .range(['#ffffff', '#dc2626'])
                 .interpolate(d3.interpolateRgb);
 
             const projection = d3.geoAlbersUsa().fitSize([width, height], geo);
