@@ -201,6 +201,159 @@ svg {
     transition: opacity 0.2s;
 }
 
+/* Demo Video Button */
+#demo-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 20px 12px 16px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #4338ca 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 100;
+    box-shadow: 
+        0 4px 15px rgba(99, 102, 241, 0.4),
+        0 0 20px rgba(99, 102, 241, 0.2);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    max-width: 160px;
+    animation: collapseButton 0.5s ease 3s forwards;
+}
+
+#demo-btn span {
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s ease, max-width 0.4s ease;
+    max-width: 100px;
+}
+
+#demo-btn::before {
+    content: '';
+    min-width: 10px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 10px;
+    border-color: transparent transparent transparent white;
+    transition: transform 0.3s ease;
+}
+
+/* Collapsed state after animation */
+@keyframes collapseButton {
+    to {
+        padding: 16px 16px 16px 18px;
+        max-width: 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        opacity: 0.6;
+    }
+}
+
+/* Expand on hover */
+#demo-btn:hover {
+    animation: none;
+    padding: 12px 20px 12px 16px;
+    max-width: 160px;
+    border-radius: 50px;
+    opacity: 1;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 8px 25px rgba(99, 102, 241, 0.5),
+        0 0 30px rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, #818cf8 0%, #6366f1 50%, #4f46e5 100%);
+}
+
+#demo-btn:hover span {
+    opacity: 1;
+    max-width: 100px;
+}
+
+#demo-btn:hover::before {
+    transform: scale(1.2);
+}
+
+#demo-btn:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+/* Keep collapsed when not hovering (after animation completes) */
+#demo-btn.collapsed {
+    padding: 16px 16px 16px 18px;
+    max-width: 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    opacity: 0.6;
+}
+
+#demo-btn.collapsed span {
+    opacity: 0;
+    max-width: 0;
+}
+
+#demo-btn.collapsed:hover {
+    padding: 12px 20px 12px 16px;
+    max-width: 160px;
+    width: auto;
+    height: auto;
+    border-radius: 50px;
+    opacity: 1;
+}
+
+#demo-btn.collapsed:hover span {
+    opacity: 1;
+    max-width: 100px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    position: relative;
+}
+
+#close-modal {
+    position: absolute;
+    top: -35px;
+    right: 0;
+    color: #aaa;
+    font-size: 32px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+#close-modal:hover {
+    color: white;
+}
+
+#demo-video {
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    background: #000;
+}
+
 @media (max-width: 768px) {
     .dashboard {
         grid-template-columns: 1fr;
@@ -208,5 +361,25 @@ svg {
     
     header h1 {
         font-size: 1.8rem;
+    }
+
+    #demo-btn {
+        bottom: 16px;
+        right: 16px;
+        padding: 10px 16px 10px 14px;
+        font-size: 12px;
+    }
+
+    #demo-btn.collapsed {
+        padding: 14px 14px 14px 16px;
+        max-width: 44px;
+        width: 44px;
+        height: 44px;
+    }
+
+    #demo-video {
+        width: 90vw;
+        height: auto;
+        max-height: 80vh;
     }
 }

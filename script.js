@@ -712,3 +712,43 @@ function regionalSalesMap(data) {
         })
         .catch(err => console.error('Map error:', err));
 }
+
+// ===============================
+// 5. Demo Video Modal
+// ===============================
+const modal = document.getElementById("video-modal");
+const video = document.getElementById("demo-video");
+const demoBtn = document.getElementById("demo-btn");
+
+// Add collapsed class after initial animation finishes (3s delay + 0.5s animation)
+setTimeout(() => {
+    demoBtn.classList.add("collapsed");
+}, 3500);
+
+demoBtn.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+});
+
+document.getElementById("close-modal").addEventListener("click", () => {
+    modal.classList.add("hidden");
+    video.pause();
+    video.currentTime = 0;
+});
+
+// Close modal on background click
+modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+        modal.classList.add("hidden");
+        video.pause();
+        video.currentTime = 0;
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+        modal.classList.add("hidden");
+        video.pause();
+        video.currentTime = 0;
+    }
+});
