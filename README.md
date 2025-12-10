@@ -17,7 +17,7 @@ An interactive data visualization dashboard built with D3.js for exploring Super
 
 ## Usage
 
-View the live dashboard: [GitHub Pages Link](insert link here cpy paste)
+View the live dashboard: [GitHub Pages Link](https://cooperhartzog.github.io/4030-Team-u03-F25/)
 
 ## Data
 
